@@ -1,0 +1,54 @@
+name: Validate public documentation
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check public files and relative documentation links
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import subprocess
+          root = Path.cwd()
+          for name in subprocess.check_output(["git", "ls-files"], text=True).splitlines():
+              path = Path(name)
+              allowed = path.suffix == ".md" or name == "LICENSE" or name == "compose/.env.example"
+              allowed |= name == "compose/docker-compose.yml" or name.startswith(".github/") and path.suffix == ".yml"
+              assert allowed, f"Unexpected public file: {name}"
+              if path.suffix != ".md":
+                  continue
+              for link in re.findall(r"\]\(([^ )]+)", path.read_text()):
+                  if "://" in link or link.startswith("#"):
+                      continue
+                  target = (path.parent / link.split("#")[0]).resolve()
+                  assert target.is_relative_to(root) and target.is_file(), f"Broken link: {name}: {link}"
+      - name: Validate image-only Compose template
+        env:
+          DBFOX_VERSION: 0.0.0
+          DBFOX_SERVER_DIGEST: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          DBFOX_WEB_DIGEST: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        run: |
+          docker compose -f compose/docker-compose.yml config --quiet
+          docker compose -f compose/docker-compose.yml config --format json > /tmp/dbfox-compose.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          config = json.loads(Path('/tmp/dbfox-compose.json').read_text())
+          assert config['name'] == 'dbfox'
+          assert set(config['services']) == {'server', 'web'}
+          assert set(config['volumes']) == {'dbfox-data'}
+          for service in config['services'].values():
+              assert 'build' not in service
+              assert service['platform'] == 'linux/amd64'
+              assert service['image'].startswith('ghcr.io/richardgvin/dbfox-')
+              assert all(port['host_ip'] == '127.0.0.1' for port in service['ports'])
+          PY

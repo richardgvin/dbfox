@@ -1,0 +1,26 @@
+name: Installation problem
+description: Help with an installer, Docker or MCP setup.
+body:
+  - type: markdown
+    attributes:
+      value: Remove connection strings, hostnames, usernames, passwords and private data. Report security vulnerabilities through SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: dbfox version and operating system
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened or what do you need?
+      description: Include steps, expected behavior and actual behavior where applicable. Use synthetic data.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I removed credentials, hostnames and private data.
+          required: true
