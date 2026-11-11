@@ -2,7 +2,8 @@
 
 Download the Windows x64 MCP ZIP from the same
 [release](https://github.com/richardgvin/dbfox/releases) as your application.
-Verify `SHA256SUMS`, extract it, and locate `dbfox-mcp.exe`. You do not need
+Compare its SHA-256 with the digest in the release's Assets list, extract
+the archive, and locate `dbfox-mcp.exe`. You do not need
 Rust or `cargo build`. The MSI and standalone web server do not configure an
 AI client's MCP connection automatically.
 

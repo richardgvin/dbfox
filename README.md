@@ -22,9 +22,9 @@ Until a release is published, there are no supported public installers.
 - macOS, Linux desktop and ARM64 packages are not part of the first release.
 
 The first Windows release is **unsigned**. It may show an unknown-publisher or
-SmartScreen warning. Verify its SHA-256 against the release's `SHA256SUMS` and
-follow your organization's installation policy. Installing the MSI does not
-install or configure the separate MCP package.
+SmartScreen warning. Verify its SHA-256 against the digest in the release's
+Assets list and follow your organization's installation policy. Installing the
+MSI does not install or configure the separate MCP package.
 
 For Docker, download and extract the release's Compose ZIP:
 

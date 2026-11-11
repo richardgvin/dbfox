@@ -1,8 +1,8 @@
 # Third-party notices
 
-Every published release includes a generated `THIRD_PARTY_NOTICES.md` asset
-with the Rust and npm dependency notices and the inventory of both container
-images. Windows ZIPs and images also carry the applicable license texts.
+Each installer, ZIP and container image includes the applicable license texts
+and generated `THIRD_PARTY_NOTICES.md`. The notices cover locked Rust and npm
+dependencies; container notices also cover the operating-system components.
 Use the notices belonging to the exact version you downloaded.
 
 The inventory is generated from locked dependencies, including the vendored

@@ -21,7 +21,7 @@ dbfox 在本地运行，不是托管数据库服务。
 - 首批不提供 macOS、Linux 桌面版和 ARM64 安装包。
 
 首发 Windows 程序**未签名**，系统可能提示未知发布者或 SmartScreen 警告。
-请用发行版的 `SHA256SUMS` 核对 SHA-256，并遵守所在组织的安装策略。
+请用发行版 Assets 列表中对应文件的摘要核对 SHA-256，并遵守所在组织的安装策略。
 安装 MSI 不会安装或配置独立 MCP 包。
 
 使用 Docker 时，下载并解压该版本的 Compose ZIP：

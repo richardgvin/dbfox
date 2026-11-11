@@ -16,14 +16,48 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import json
           import re
           import subprocess
           root = Path.cwd()
+          def unique_object(pairs):
+              result = dict(pairs)
+              assert len(result) == len(pairs), "Duplicate release metadata fields"
+              return result
           for name in subprocess.check_output(["git", "ls-files"], text=True).splitlines():
               path = Path(name)
               allowed = path.suffix == ".md" or name == "LICENSE" or name == "compose/.env.example"
               allowed |= name == "compose/docker-compose.yml" or name.startswith(".github/") and path.suffix == ".yml"
+              metadata = re.fullmatch(r"metadata/releases/(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?\.json", name)
+              allowed |= metadata is not None
               assert allowed, f"Unexpected public file: {name}"
+              if metadata:
+                  data = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+                  version = path.stem
+                  assert set(data) == {"schema_version", "version", "channel", "release_url", "windows_signing", "assets", "images"}
+                  assert type(data["schema_version"]) is int and data["schema_version"] == 2 and data["version"] == version
+                  assert data["channel"] == ("prerelease" if "-" in version else "stable")
+                  assert data["release_url"] == f"https://github.com/richardgvin/dbfox/releases/tag/v{version}"
+                  assert data["windows_signing"] in {"unsigned", "authenticode"}
+                  names = {
+                      f"dbfox-{version}-windows-x86_64.msi": ("windows", "x86_64", "msi"),
+                      f"dbfox-{version}-windows-x86_64-standalone.zip": ("windows", "x86_64", "standalone"),
+                      f"dbfox-{version}-windows-x86_64-mcp.zip": ("windows", "x86_64", "mcp"),
+                      f"dbfox-{version}-compose.zip": ("linux", "amd64", "compose"),
+                  }
+                  assert len(data["assets"]) == 4 and {asset["name"] for asset in data["assets"]} == set(names)
+                  for asset in data["assets"]:
+                      assert set(asset) == {"platform", "arch", "kind", "name", "url", "size", "sha256"}
+                      assert (asset["platform"], asset["arch"], asset["kind"]) == names[asset["name"]]
+                      assert asset["url"] == f"https://github.com/richardgvin/dbfox/releases/download/v{version}/{asset['name']}"
+                      assert type(asset["size"]) is int and asset["size"] > 0
+                      assert re.fullmatch(r"[0-9a-f]{64}", asset["sha256"])
+                  assert set(data["images"]) == {"server", "web"}
+                  for service, image in data["images"].items():
+                      assert set(image) == {"reference", "digest", "platform"}
+                      assert image["reference"] == f"ghcr.io/richardgvin/dbfox-{service}:{version}"
+                      assert image["platform"] == "linux/amd64" and re.fullmatch(r"sha256:[0-9a-f]{64}", image["digest"])
+                  continue
               if path.suffix != ".md":
                   continue
               for link in re.findall(r"\]\(([^ )]+)", path.read_text()):

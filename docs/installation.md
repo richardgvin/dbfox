@@ -5,7 +5,8 @@ Get the Windows x64 MSI, standalone ZIP or MCP ZIP from
 unsigned. Windows may show an unknown-publisher or SmartScreen warning; do
 not disable system protections to make an unverified file run.
 
-Download `SHA256SUMS` from the same release and compare the relevant entry:
+Compare the full SHA-256 digest shown next to the file in the release's
+Assets list with the digest calculated locally:
 
 ```powershell
 Get-FileHash -Algorithm SHA256 -LiteralPath .\downloaded-file.msi
@@ -36,7 +37,7 @@ Extract the entire archive to a writable directory, keeping `web/` next to
 ```
 
 Open `http://127.0.0.1:7788`. Keep that process running while using the web UI.
-The ZIP also includes the `dbfox.exe` CLI. Run `./dbfox.exe --help` for its
+The ZIP also includes the `dbfox-cli.exe` CLI. Run `./dbfox-cli.exe --help` for its
 commands. This mode does not require installing the desktop application.
 
 Saved connection metadata lives in `%LOCALAPPDATA%\dbfox`, including
